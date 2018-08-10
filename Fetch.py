@@ -19,4 +19,4 @@ for region in r:
     last_change = r[region]['last_change']
     time_of_last_change = r[region]['time_of_last_change_utc_timezone']
     change_effect = checkNumber(last_change)
-    print(region + ", " + str(current_price) + ", Change: " + change_effect + " occurred at " + time_of_last_change + " UTC")
+    print(region + ", " + str(current_price) + ", Change: " + str(change_effect) + " occurred at " + str(time_of_last_change) + " UTC")

@@ -1,6 +1,8 @@
-"Fetches current price, and compares against 30 day price."
+"""Fetches current price, and compares against 30 day price.
+Requires requests and win10Toast for desktop notifications"""
 
 import requests, json, re
+from win10toast import ToastNotifier
 
 curr_token_url = "https://wowtokenprices.com/current_prices.json"
 month_token_url = "https://wowtokenprices.com/history_prices_30_day.json"
@@ -18,8 +20,9 @@ for entry in r2["us"]:
     if entry["price"] < lowest_price:
         lowest_price = entry["price"]
 
-if current_price < lowest_price:
-    print("BUY, BUY, BUY!!!")
-    print("US, " + str(current_price) + ", Change: " + str(last_change) + " occurred at " + str(time_of_last_change) + "UTC")
+toaster = ToastNotifier()
+
+if lowest_price > current_price:
+    toaster.show_toast("WoW Token Bot", str(current_price) + ", BUY NOW!")
 else:
-    print(str(lowest_price) + " < " + str(current_price) + "...Eternal Sadness")
+    toaster.show_toast("WoW Token Bot", "Lowest: " + str(lowest_price) + " < Current: " + str(current_price))

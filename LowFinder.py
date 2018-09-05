@@ -5,17 +5,38 @@ import requests, json, time, datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from win10toast import ToastNotifier
 
+
 def fetchJSON():
     """Function starts by fetching JSON from two URLs, one containing the current in-game gold price for a WoW Token,
-        and the other containing history for the price over the last thirty days. It then scans through the last thirty
-        for the lowest price, and compares it to the current price."""
+        and the other containing history for the price over the last thirty days."""
 
     curr_token_url = "https://wowtokenprices.com/current_prices.json"
     month_token_url = "https://wowtokenprices.com/history_prices_30_day.json"
+    checkPages(curr_token_url, month_token_url)
 
-    r1 = json.loads(requests.get(curr_token_url).text)
-    r2 = json.loads(requests.get(month_token_url).text)
-    findPrice(r1, r2)
+def throwError():
+    errorToaster = ToastNotifier()
+
+    NotifTitle = "WoW Token Bot"
+    errorToaster.show_toast(NotifTitle, "Error contacting website, will try again soon.", duration=1800, threaded=True)
+
+
+def checkPages(curr_token_url, month_token_url):
+
+    r1Text, r2Text = " ", " "
+    r1 = requests.get(curr_token_url)
+    if r1.status_code == 200:
+        r1Text = json.loads(r1.text)
+    else:
+        throwError()
+
+    r2 = requests.get(month_token_url)
+    if r2.status_code == 200:
+        r2Text = json.loads(r2.text)
+    else:
+        throwError()
+
+    findPrice(r1Text, r2Text)
 
 
 def findPrice(r1, r2):
@@ -35,18 +56,12 @@ def findPrice(r1, r2):
     toaster = ToastNotifier()
 
     NotifTitle = "WoW Token Bot"
-    curr_string = str(current_price)
-    low_string = str(lowest_price)
+    curr_string = str(format(current_price, ',d'))
+    low_string = str(format(lowest_price, ',d'))
 
     if lowest_price > current_price:
-        toaster.show_toast(NotifTitle, curr_string + ", BUY NOW!", duration=10, threaded=True)
+        toaster.show_toast(NotifTitle, curr_string + ", BUY NOW!", duration=15, threaded=True)
     else:
-        toaster.show_toast(NotifTitle, "Lowest: " + low_string + " < Current: " + curr_string, duration=1800, threaded=True)
+        toaster.show_toast(NotifTitle, "Lowest: " + low_string + " < Current: " + curr_string, duration=15, threaded=False)
 
-    while toaster.notification_active():
-        time.sleep(0.1)
-
-
-scheduler = BlockingScheduler()
-scheduler.add_job(fetchJSON(), 'interval', hours=1)
-scheduler.start()
+fetchJSON()
